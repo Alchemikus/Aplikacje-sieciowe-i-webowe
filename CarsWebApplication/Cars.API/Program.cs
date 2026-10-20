@@ -1,6 +1,10 @@
+using Cars.API.Middleware;
+using Cars.Application.Cars;
+using Cars.Application.Common.Behaviors;
+using FluentValidation;
+using MediatR;
 using Cars.Infrastructure;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,6 +27,16 @@ builder.Services.AddCors(options => {
     });
 });
 
+builder.Services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssembly(typeof(GetCarsList.Handler).Assembly);
+});
+
+builder.Services.AddValidatorsFromAssemblyContaining<Create.CommandValidator>();
+
+builder.Services.AddTransient(
+    typeof(IPipelineBehavior<,>),
+    typeof(ValidationBehavior<,>));
 
 
 var app = builder.Build();
@@ -33,6 +47,7 @@ if (app.Environment.IsDevelopment()) {
 }
 app.UseHttpsRedirection();
 app.UseAuthorization();
+app.UseMiddleware<ApiExceptionMiddleware>();
 app.UseCors("CorsPolicy");
 app.MapControllers();
 
