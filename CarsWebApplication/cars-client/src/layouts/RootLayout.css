@@ -1,0 +1,64 @@
+.main-header {
+  display: flex;
+  padding: 1rem 2rem;
+  background-color: #1e3a5f;
+  color: white;
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 2rem; /* Odstęp między logo a menu */
+}
+
+.brand-logo {
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: white;
+  text-decoration: none;
+}
+
+.nav-link {
+  color: #ccc;
+  text-decoration: none;
+}
+
+.nav-link.active {
+  color: white;
+  font-weight: bold;
+}
+
+.base-toast {
+  background-color: var(--bg) !important;
+  color: var(--text-h) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--shadow) !important;
+}
+
+.toast-success {
+  background-color: #dcfce7 !important;
+  color: #166534 !important;
+  border: 1px solid #4ade80 !important;
+}
+
+.toast-error {
+  background-color: #fee2e2 !important;
+  color: #991b1b !important;
+  border: 1px solid #f87171 !important;
+}
+
+.slide-toast {
+  /* Nadpisuje domyślną animację react-hot-toast */
+  animation: slideInRight 0.35s cubic-bezier(0.21, 1.02, 0.73, 1) forwards !important;
+}
+
+@keyframes slideInRight {
+  0% {
+    transform: translateX(120%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}

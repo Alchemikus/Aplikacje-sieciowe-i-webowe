@@ -1,0 +1,77 @@
+{
+  "cars": [
+    {
+      "id": "1",
+      "brand": "Toyota",
+      "model": "Corolla",
+      "doorsNumber": 5,
+      "luggageCapacity": 470,
+      "engineCapacity": 1800,
+      "fuelType": 1,
+      "productionDate": "2022-05-10",
+      "averageFuelConsumption": 6.4,
+      "bodyType": 1
+    },
+    {
+      "brand": "Skoda",
+      "model": "Octavia",
+      "doorsNumber": 5,
+      "luggageCapacity": 600,
+      "engineCapacity": 1500,
+      "fuelType": 1,
+      "productionDate": "2021-03-15",
+      "averageFuelConsumption": 6.8,
+      "bodyType": 1,
+      "id": "2"
+    },
+    {
+      "brand": "qwe",
+      "model": "qwe",
+      "doorsNumber": 50,
+      "luggageCapacity": 0,
+      "engineCapacity": 0,
+      "fuelType": 0,
+      "productionDate": "0123-03-12",
+      "averageFuelConsumption": 0,
+      "bodyType": 0,
+      "id": "1ddrWxMufFs"
+    },
+    {
+      "brand": "qwe",
+      "model": "1az",
+      "doorsNumber": 5,
+      "luggageCapacity": 12,
+      "engineCapacity": 12,
+      "fuelType": 0,
+      "productionDate": "1212-12-01",
+      "averageFuelConsumption": 0,
+      "bodyType": 0,
+      "id": "P5u5Duu2eQg"
+    },
+    {
+      "brand": "sdfg",
+      "model": "Dv",
+      "doorsNumber": 5,
+      "luggageCapacity": 12,
+      "engineCapacity": 12,
+      "fuelType": 0,
+      "productionDate": "1212-02-12",
+      "averageFuelConsumption": 0,
+      "bodyType": 0,
+      "id": "jtT8iiDmHMA"
+    },
+    {
+      "brand": "qwe",
+      "model": "asd",
+      "doorsNumber": 5,
+      "luggageCapacity": 12,
+      "engineCapacity": 9,
+      "fuelType": 4,
+      "productionDate": "2221-12-12",
+      "averageFuelConsumption": 0,
+      "bodyType": 0,
+      "id": "_3X0A6xzDos"
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}
