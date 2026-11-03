@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router';
 import toast from 'react-hot-toast';
 import type { Car } from '../models/Car';
 import { getCarById } from '../services/carService';
+import axios from 'axios';
 
 const getFuelTypeName = (type: number) => ['Benzyna', 'Diesel', 'Hybryda', 'Elektryczny', 'LPG'][type] || type;
 const getBodyTypeName = (type: number) => ['Hatchback', 'Sedan', 'Kombi', 'SUV', 'Roadster'][type] || type;
@@ -26,6 +27,9 @@ export default function CarDetailsPage() {
           setLoading(false);
         }
       } catch (err) {
+        if (axios.isCancel(err)) {
+          return;
+        }
         if (isMounted) {
           toast.error('Nie udało się pobrać szczegółów samochodu.');
           navigate('/cars');

@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import type { NewCar } from '../models/Car';
 import { getCarById, updateCar } from '../services/carService';
 import CarForm from '../components/CarForm';
+import axios from 'axios';
 
 export default function EditCarPage() {
   const { id } = useParams<{ id: string }>();
@@ -37,6 +38,9 @@ export default function EditCarPage() {
           setLoading(false);
         }
       } catch (err: any) {
+        if (axios.isCancel(err)) {
+          return;
+        }
         if (err.name !== 'AbortError' && isMounted) {
           toast.error('Nie udało się pobrać danych samochodu.');
           navigate('/cars');
@@ -59,6 +63,9 @@ export default function EditCarPage() {
       toast.success('Pomyślnie zaktualizowano dane samochodu!');
       navigate('/cars', { state: { expandedCarId: id } });
     } catch (err) {
+      if (axios.isCancel(err)) {
+        return;
+      }
       toast.error('Wystąpił błąd podczas aktualizacji. Spróbuj ponownie.');
     }
   };

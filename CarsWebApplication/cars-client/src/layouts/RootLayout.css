@@ -62,3 +62,101 @@
     opacity: 1;
   }
 }
+
+.favorite-star-btn {
+  background: none;
+  border: none;
+  color: #FFD700;
+  font-size: 1.8rem;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+
+.toolbar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.search-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.search-input {
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background-color: var(--bg);
+  color: var(--text);
+  min-width: 250px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.checkbox-input {
+  cursor: pointer;
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.cars-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.car-tile {
+  border: 1px solid var(--border);
+  padding: 1.2rem 3%;
+  border-radius: 8px;
+  cursor: pointer;
+  background-color: var(--bg);
+  box-shadow: var(--shadow);
+  transition: border-color 0.2s;
+}
+
+.car-tile:hover {
+  border-color: var(--text-h);
+}
+
+.car-tile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.car-tile-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.car-tile-title {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--text-h);
+}
+
+.car-tile-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.car-tile-details {
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1.5rem;
+}
