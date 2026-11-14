@@ -7,12 +7,16 @@ import CarDetailsPage from './CarDetailsPage';
 import NotFoundPage from './NotFoundPage';
 import axios from 'axios';
 import { useCarUiStore } from '../store/useCarUiStore';
+import { useAuthStore } from '../store/useAuthStore';
 
 export default function CarsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const favoriteCarIds = useCarUiStore((state) => state.favoriteCarIds);
+  const user = useAuthStore((state) => state.user);
+  const isAdmin = user?.roles.includes('Admin') ?? false;
+  const favoriteCarIdsByUser = useCarUiStore((state) => state.favoriteCarIdsByUser);
+  const favoriteCarIds = user ? favoriteCarIdsByUser[user.id] ?? [] : [];
   const toggleFavorite = useCarUiStore((state) => state.toggleFavorite);
   const searchTerm = useCarUiStore((state) => state.searchTerm);
   const setSearchTerm = useCarUiStore((state) => state.setSearchTerm);
@@ -63,7 +67,9 @@ export default function CarsPage() {
     try {
       await deleteCar(car.id);
       if (id === car.id) navigate('/cars');
-      removeFavorite(car.id);
+      if (user) {
+        removeFavorite(user.id, car.id);
+      }
       await loadCars();
       toast.success(`Usunięto samochód: ${car.brand} ${car.model}`);
     } catch (err) {
@@ -161,7 +167,9 @@ export default function CarsPage() {
                       className="favorite-star-btn"
                       onClick={(e) => {
                         e.stopPropagation();
-                        toggleFavorite(car.id);
+                        if (user) {
+                          toggleFavorite(user.id, car.id);
+                        }
                       }}
                       title={isFavorite ? "Usuń z ulubionych" : "Dodaj do ulubionych"}
                     >
@@ -176,24 +184,23 @@ export default function CarsPage() {
                     <Link 
                       to={`/cars/${car.id}/edit`} 
                       className="btn btn-edit"
-                      onClick={(e) => e.stopPropagation()}
-                    >
+                      onClick={(e) => e.stopPropagation()}>
                       Edytuj
                     </Link>
-                    <button 
-                      className="btn btn-delete"
-                      onClick={(e) => { e.stopPropagation(); handleDelete(car); }}
-                    >
-                      Usuń
-                    </button>
+                    {isAdmin && (
+                      <button 
+                        className="btn btn-delete"
+                        onClick={(e) => { e.stopPropagation(); handleDelete(car); }}>
+                        Usuń
+                      </button>
+                    )}
                   </div>
                 </div>
                 
                 {id === car.id && (
                   <div 
                     className="car-tile-details" 
-                    onClick={(e) => e.stopPropagation()}
-                  >
+                    onClick={(e) => e.stopPropagation()}>
                     <CarDetailsPage />
                   </div>
                 )}

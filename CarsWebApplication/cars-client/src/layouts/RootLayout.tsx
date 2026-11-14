@@ -1,6 +1,7 @@
-import { NavLink, Outlet, Link } from 'react-router';
+import { Outlet, Link } from 'react-router';
 import { Toaster } from 'react-hot-toast';
-import './RootLayout.css';
+import Navigation from '../components/Navigation';
+import '../index.css';
 
 export default function RootLayout() {
   return (
@@ -25,15 +26,9 @@ export default function RootLayout() {
           <Link to="/" className="brand-logo">
             AutoManager
           </Link>
-          <nav>
-            <NavLink 
-              to="/cars" 
-              className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}
-            >
-              Samochody
-            </NavLink>
-          </nav>
         </div>
+        
+        <Navigation />
       </header>
       
       <main className="content">
