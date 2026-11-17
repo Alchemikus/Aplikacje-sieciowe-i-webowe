@@ -1,11 +1,11 @@
-﻿using Cars.Domain;
+﻿using Cars.Application.Cars.DTOs;
 using FluentValidation;
 
 namespace Cars.Application.Cars;
 
-public class CarValidator : AbstractValidator<Car>
+public class CarDtoValidator : AbstractValidator<CarDto>
 {
-    public CarValidator()
+    public CarDtoValidator()
     {
         RuleFor(x => x.Brand)
             .NotEmpty()

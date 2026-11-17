@@ -1,4 +1,5 @@
-﻿using Cars.Domain;
+﻿using Cars.Application.Cars.DTOs;
+using Cars.Application.Cars.Mappers;
 using Cars.Infrastructure;
 using FluentValidation;
 using MediatR;
@@ -7,21 +8,23 @@ namespace Cars.Application.Cars;
 
 public class Create
 {
-    public class Command : IRequest<Car>
+    public class Command : IRequest<CarDto>
     {
-        public required Car Car { get; set; }
+        public required CarDto CarDto { get; set; }
     }
 
-    public class Handler(DataContext context) : IRequestHandler<Command, Car>
+    public class Handler(DataContext context) : IRequestHandler<Command, CarDto>
     {
         private readonly DataContext _context = context;
 
-        public async Task<Car> Handle(Command request, CancellationToken cancellationToken)
+        public async Task<CarDto> Handle(Command request, CancellationToken cancellationToken)
         {
-            _context.Cars.Add(request.Car);
+            var car = CarMapper.ToEntity(request.CarDto);
+
+            _context.Cars.Add(car);
             await _context.SaveChangesAsync(cancellationToken);
 
-            return request.Car;
+            return CarMapper.ToDto(car);
         }
     }
 
@@ -29,7 +32,7 @@ public class Create
     {
         public CommandValidator()
         {
-            RuleFor(x => x.Car).SetValidator(new CarValidator());
+            RuleFor(x => x.CarDto).SetValidator(new CarDtoValidator());
         }
     }
 }

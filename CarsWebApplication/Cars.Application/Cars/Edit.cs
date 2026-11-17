@@ -1,4 +1,4 @@
-﻿using Cars.Domain;
+﻿using Cars.Application.Cars.DTOs;
 using Cars.Infrastructure;
 using FluentValidation;
 using MediatR;
@@ -10,7 +10,7 @@ public class Edit
     public class Command : IRequest<bool>
     {
         public Guid Id { get; set; }
-        public required Car Car { get; set; }
+        public required CarDto CarDto { get; set; }
     }
 
     public class Handler(DataContext context) : IRequestHandler<Command, bool>
@@ -23,15 +23,15 @@ public class Edit
 
             if (car is null) return false;
 
-            car.Brand = request.Car.Brand;
-            car.Model = request.Car.Model;
-            car.DoorsNumber = request.Car.DoorsNumber;
-            car.LuggageCapacity = request.Car.LuggageCapacity;
-            car.EngineCapacity = request.Car.EngineCapacity;
-            car.FuelType = request.Car.FuelType;
-            car.ProductionDate = request.Car.ProductionDate;
-            car.AverageFuelConsumption = request.Car.AverageFuelConsumption;
-            car.BodyType = request.Car.BodyType;
+            car.Brand = request.CarDto.Brand;
+            car.Model = request.CarDto.Model;
+            car.DoorsNumber = request.CarDto.DoorsNumber;
+            car.LuggageCapacity = request.CarDto.LuggageCapacity;
+            car.EngineCapacity = request.CarDto.EngineCapacity;
+            car.FuelType = request.CarDto.FuelType;
+            car.ProductionDate = request.CarDto.ProductionDate;
+            car.AverageFuelConsumption = request.CarDto.AverageFuelConsumption;
+            car.BodyType = request.CarDto.BodyType;
 
             await _context.SaveChangesAsync(cancellationToken);
 
@@ -43,7 +43,7 @@ public class Edit
     {
         public CommandValidator()
         {
-            RuleFor(x => x.Car).SetValidator(new CarValidator());
+            RuleFor(x => x.CarDto).SetValidator(new CarDtoValidator());
         }
     }
 }

@@ -99,7 +99,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("CorsPolicy");
-
+app.UseStaticFiles();
+app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -114,17 +115,16 @@ try
     var context = services.GetRequiredService<DataContext>();
     await context.Database.MigrateAsync();
     await Seed.SeedData(context);
+    await FeatureSeed.SeedAsync(context);
+
+    var userManager = services.GetRequiredService<UserManager<AppUser>>();
+    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+    await IdentitySeed.SeedAsync(userManager, roleManager);
 }
 catch (Exception ex)
 {
     var logger = services.GetRequiredService<ILogger<Program>>();
     logger.LogError(ex, "An error occurred during migration.");
 }
-
-var userManager = services.GetRequiredService <UserManager<AppUser>>();
-var roleManager = services.GetRequiredService <RoleManager<IdentityRole>>();
-
-await IdentitySeed.SeedAsync(userManager, roleManager);
-
 
 app.Run();
