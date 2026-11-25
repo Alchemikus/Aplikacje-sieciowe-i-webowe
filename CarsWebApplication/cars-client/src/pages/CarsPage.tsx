@@ -1,83 +1,93 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import type { Car } from '../models/Car';
 import { getCars, deleteCar } from '../services/carService';
-import CarDetailsPage from './CarDetailsPage';
-import NotFoundPage from './NotFoundPage';
-import axios from 'axios';
+import { queryKeys } from '../queries/queryKeys';
 import { useCarUiStore } from '../store/useCarUiStore';
 import { useAuthStore } from '../store/useAuthStore';
+import CarDetailsPage from './CarDetailsPage';
+import NotFoundPage from './NotFoundPage';
 
 export default function CarsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const user = useAuthStore((state) => state.user);
   const isAdmin = user?.roles.includes('Admin') ?? false;
+
   const favoriteCarIdsByUser = useCarUiStore((state) => state.favoriteCarIdsByUser);
-  const favoriteCarIds = user ? favoriteCarIdsByUser[user.id] ?? [] : [];
+  const favoriteCarIds = user ? (favoriteCarIdsByUser[user.id] ?? []) : [];
   const toggleFavorite = useCarUiStore((state) => state.toggleFavorite);
+  const removeFavorite = useCarUiStore((state) => state.removeFavorite);
   const searchTerm = useCarUiStore((state) => state.searchTerm);
   const setSearchTerm = useCarUiStore((state) => state.setSearchTerm);
   const showFavoritesOnly = useCarUiStore((state) => state.showFavoritesOnly);
   const setShowFavoritesOnly = useCarUiStore((state) => state.setShowFavoritesOnly);
-  const removeFavorite = useCarUiStore((state) => state.removeFavorite);
 
-  
-  const [cars, setCars] = useState<Car[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    data: cars = [],
+    isPending,
+    isFetching,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: queryKeys.cars,
+    queryFn: ({ signal }) => getCars(signal),
+  });
 
-  const loadCars = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await getCars();
-      setCars(data);
-    } catch (err) {
-      if (axios.isCancel(err)) {
-        return;
+  const deleteMutation = useMutation({
+    mutationFn: (car: Car) => deleteCar(car.id),
+    onSuccess: (_data, deletedCar) => {
+      if (id === deletedCar.id) {
+        navigate('/cars', { replace: true });
       }
-      setError('Nie udało się pobrać listy samochodów.');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
 
-  useEffect(() => {
-    loadCars();
-  }, [loadCars]);
+      if (user) {
+        removeFavorite(user.id, deletedCar.id);
+      }
 
-  const isNotFound = !loading && id && !cars.some((car) => car.id === id);
+      queryClient.removeQueries({
+        queryKey: queryKeys.car(deletedCar.id),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.cars,
+      });
+
+      toast.success(`Usunięto samochód: ${deletedCar.brand} ${deletedCar.model}`);
+    },
+    onError: (err, deletedCar) => {
+      toast.error(err.message || `Nie udało się usunąć ${deletedCar.brand} ${deletedCar.model}`);
+    },
+  });
+
+  const isDeletedCurrent = Boolean(id) && deleteMutation.variables?.id === id;
+
+  const isNotFound =
+    !isPending &&
+    !isFetching &&
+    !isError &&
+    !isDeletedCurrent &&
+    Boolean(id) &&
+    !cars.some((car) => car.id === id);
 
   useEffect(() => {
     if (isNotFound) {
-      toast.error('Samochód o podanym ID nie istnieje w Twojej flocie.');
+      toast.error('Samochód o podanym ID nie istnieje w Twojej flocie.', {
+        id: 'car-not-found',
+      });
     }
   }, [isNotFound]);
 
-  if (isNotFound) {
-    return <NotFoundPage />;
-  }
-
-  const handleDelete = async (car: Car) => {
-    const confirmed = window.confirm(`Czy na pewno chcesz usunąć samochód: ${car.brand} ${car.model}?`);
+  const handleDelete = (car: Car) => {
+    const confirmed = window.confirm(
+      `Czy na pewno chcesz usunąć samochód: ${car.brand} ${car.model}?`,
+    );
     if (!confirmed) return;
 
-    try {
-      await deleteCar(car.id);
-      if (id === car.id) navigate('/cars');
-      if (user) {
-        removeFavorite(user.id, car.id);
-      }
-      await loadCars();
-      toast.success(`Usunięto samochód: ${car.brand} ${car.model}`);
-    } catch (err) {
-      if (axios.isCancel(err)) {
-        return;
-      }
-      toast.error(`Nie udało się usunąć ${car.brand} ${car.model}`);
-    }
+    deleteMutation.mutate(car);
   };
 
   const handleTileClick = (carId: string) => {
@@ -91,44 +101,48 @@ export default function CarsPage() {
   const normalizedSearch = searchTerm.trim().toLowerCase();
 
   const visibleCars = cars.filter((car) => {
-    const matchesSearch = 
-      car.brand.toLowerCase().includes(normalizedSearch)
-      ||
+    const matchesSearch =
+      car.brand.toLowerCase().includes(normalizedSearch) ||
       car.model.toLowerCase().includes(normalizedSearch);
 
-    const matchesFavorite =
-      !showFavoritesOnly
-      ||
-      favoriteCarIds.includes( car.id );
+    const matchesFavorite = !showFavoritesOnly || favoriteCarIds.includes(car.id);
 
-    return (
-      matchesSearch && matchesFavorite
-    );
+    return matchesSearch && matchesFavorite;
   });
 
+  if (isPending) {
+    return (
+      <div className="page-container loader-container">
+        <span className="spinner"></span>
+        <p>Pobieranie listy samochodów...</p>
+      </div>
+    );
+  }
 
-  if (loading && cars.length === 0) return (
-    <div className="page-container loader-container">
-      <span className="spinner"></span>
-      <p>Pobieranie listy samochodów...</p>
-    </div>
-  );
-  
-  if (error) return <div className="page-container"><p>{error}</p></div>;
+  if (isError) {
+    return (
+      <div className="page-container">
+        <p className="error-message">{error.message}</p>
+      </div>
+    );
+  }
+
+  if (isNotFound) {
+    return <NotFoundPage />;
+  }
 
   return (
     <div className="page-container">
       <div className="toolbar-container">
-        
         <div className="search-filter-group">
           <input
-            type="text"
+            type="search"
             placeholder="Szukaj samochodu..."
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
             className="search-input"
           />
-          
+
           <label className="checkbox-label">
             <input
               type="checkbox"
@@ -144,9 +158,15 @@ export default function CarsPage() {
           Dodaj nowy samochód
         </Link>
       </div>
-      
-      <h1 className="page-title" style={{ marginBottom: '1.5rem' }}>Posiadane samochody:</h1>
-      
+
+      <h1 className="page-title" style={{ marginBottom: '1.5rem' }}>
+        Posiadane samochody:
+      </h1>
+
+      <p>
+        Wyświetlono: {visibleCars.length} z {cars.length}
+      </p>
+
       {visibleCars.length === 0 ? (
         <p>Brak samochodów do wyświetlenia.</p>
       ) : (
@@ -155,8 +175,8 @@ export default function CarsPage() {
             const isFavorite = favoriteCarIds.includes(car.id);
 
             return (
-              <div 
-                key={car.id} 
+              <div
+                key={car.id}
                 onClick={() => handleTileClick(car.id)}
                 className="car-tile"
               >
@@ -171,7 +191,7 @@ export default function CarsPage() {
                           toggleFavorite(user.id, car.id);
                         }
                       }}
-                      title={isFavorite ? "Usuń z ulubionych" : "Dodaj do ulubionych"}
+                      title={isFavorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}
                     >
                       {isFavorite ? '★' : '☆'}
                     </button>
@@ -179,28 +199,36 @@ export default function CarsPage() {
                       {car.brand} {car.model} ({car.productionDate.substring(0, 4)})
                     </h3>
                   </div>
-                  
+
                   <div className="car-tile-actions">
-                    <Link 
-                      to={`/cars/${car.id}/edit`} 
+                    <Link
+                      to={`/cars/${car.id}/edit`}
                       className="btn btn-edit"
-                      onClick={(e) => e.stopPropagation()}>
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       Edytuj
                     </Link>
                     {isAdmin && (
-                      <button 
+                      <button
+                        type="button"
                         className="btn btn-delete"
-                        onClick={(e) => { e.stopPropagation(); handleDelete(car); }}>
+                        disabled={deleteMutation.isPending}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(car);
+                        }}
+                      >
                         Usuń
                       </button>
                     )}
                   </div>
                 </div>
-                
+
                 {id === car.id && (
-                  <div 
-                    className="car-tile-details" 
-                    onClick={(e) => e.stopPropagation()}>
+                  <div
+                    className="car-tile-details"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <CarDetailsPage />
                   </div>
                 )}
